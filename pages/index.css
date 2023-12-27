@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.header {
+  background-color: aliceblue;
+  padding: 8px;
+  display: flex;
+  place-items: center;
+  justify-content: space-between;
+}
+
+.header>a {
+  font-size: larger;
+}
+
+.header>p {
+  font-size: 14px;
+  color: purple;
+}

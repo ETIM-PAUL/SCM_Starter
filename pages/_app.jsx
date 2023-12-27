@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import atm_abi from "../abi/assessment.json";
+import "./index.css"
 
-export default function HomePage() {
+const App = () => {
   const [ethWallet, setEthWallet] = useState(undefined);
   const [account, setAccount] = useState(undefined);
   const [atm, setATM] = useState(undefined);
   const [balance, setBalance] = useState(undefined);
 
-  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-  const atmABI = atm_abi.abi;
+  const contractAddress = "0x30298cb1Da58Ee04a5f67ca17085256595C0C008";
+  const atmABI = atm_abi;
 
   const getWallet = async () => {
     if (window.ethereum) {
@@ -24,7 +25,6 @@ export default function HomePage() {
 
   const handleAccount = (account) => {
     if (account) {
-      console.log("Account connected: ", account);
       setAccount(account);
     }
     else {
@@ -49,11 +49,10 @@ export default function HomePage() {
     const provider = new ethers.providers.Web3Provider(ethWallet);
     const signer = provider.getSigner();
     const atmContract = new ethers.Contract(contractAddress, atmABI, signer);
-
     setATM(atmContract);
   }
 
-  const getBalance = async () => {
+  const balanceOfUser = async () => {
     if (atm) {
       setBalance((await atm.getBalance()).toNumber());
     }
@@ -63,7 +62,7 @@ export default function HomePage() {
     if (atm) {
       let tx = await atm.deposit(1);
       await tx.wait()
-      getBalance();
+      balanceOfUser();
     }
   }
 
@@ -71,12 +70,14 @@ export default function HomePage() {
     if (atm) {
       let tx = await atm.withdraw(1);
       await tx.wait()
-      getBalance();
+      balanceOfUser();
     }
   }
 
+  useEffect(() => { getWallet(); }, []);
+
+
   const initUser = () => {
-    console.log(ethWallet)
     // Check to see if user has Metamask
     if (!ethWallet) {
       return <p>Please install Metamask in order to use this ATM.</p>
@@ -84,35 +85,37 @@ export default function HomePage() {
 
     // Check to see if user is connected. If not, connect to their account
     if (!account) {
-      return <button onClick={connectAccount}>Please connect your Metamask wallet</button>
+      return <button style={{ backgroundColor: "purple", padding: "10px", color: "white", border: "none", borderRadius: "5px" }} onClick={connectAccount}>Please connect your Metamask wallet</button>
     }
 
-    if (balance == undefined) {
-      getBalance();
+    if (balance == undefined && account != undefined) {
+      balanceOfUser();
     }
 
     return (
-      <div>
-        <p>Your Account: {account}</p>
-        <p>Your Balance: {balance}</p>
-        <button onClick={deposit}>Deposit 1 ETH</button>
-        <button onClick={withdraw}>Withdraw 1 ETH</button>
+      <div style={{ fontFamily: "sans-serif" }}>
+        <div className="navbar bg-base-100 header">
+          <a className="btn btn-ghost text-xl" style={{ fontSize: "20px" }}>myWallet</a>
+          <p className="text-red-500">Your Account: {account}</p>
+        </div>
+        <div style={{ margin: "auto" }}>
+          <p className="balance" style={{ display: "block", textAlign: "center", fontSize: "25px" }}>Your Balance: {balance}</p>
+          <div className="" style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+            <button style={{ backgroundColor: "purple", padding: "10px", color: "white", border: "none", borderRadius: "5px" }} onClick={deposit}>Deposit 1 ETH</button>
+            <button style={{ backgroundColor: "purple", padding: "10px", color: "white", border: "none", borderRadius: "5px" }} onClick={withdraw}>Withdraw 1 ETH</button>
+          </div>
+        </div>
       </div>
     )
   }
 
-  useEffect(() => { getWallet(); }, []);
+  return (
+    <main>
+      {initUser()}
+    </main>
+  )
 
-  // return (
-  //   <main className="container">
-  //     <header><h1>Welcome to the Metacrafters ATM!</h1></header>
-  //     {/* {initUser()} */}
-  //     <style jsx>{`
-  //       .container {
-  //         text-align: center
-  //       }
-  //     `}
-  //     </style>
-  //   </main>
-  // )
+
 }
+
+export default App
