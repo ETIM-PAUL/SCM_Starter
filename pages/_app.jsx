@@ -8,6 +8,8 @@ const App = () => {
   const [account, setAccount] = useState(undefined);
   const [atm, setATM] = useState(undefined);
   const [balance, setBalance] = useState(undefined);
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [depositLoading, setDepositLoading] = useState(false);
 
   const contractAddress = "0x30298cb1Da58Ee04a5f67ca17085256595C0C008";
   const atmABI = atm_abi;
@@ -55,22 +57,36 @@ const App = () => {
   const balanceOfUser = async () => {
     if (atm) {
       setBalance((await atm.getBalance()).toNumber());
+      setWithdrawLoading(false);
+      setDepositLoading(false);
     }
   }
 
   const deposit = async () => {
     if (atm) {
-      let tx = await atm.deposit(1);
-      await tx.wait()
-      balanceOfUser();
+      setDepositLoading(true);
+      try {
+        let tx = await atm.deposit(1);
+        await tx.wait()
+        balanceOfUser();
+
+      } catch (error) {
+        setDepositLoading(false);
+      }
     }
   }
 
   const withdraw = async () => {
     if (atm) {
-      let tx = await atm.withdraw(1);
-      await tx.wait()
-      balanceOfUser();
+      setWithdrawLoading(true);
+      try {
+        let tx = await atm.withdraw(1);
+        await tx.wait()
+        balanceOfUser();
+
+      } catch (error) {
+        setWithdrawLoading(false);
+      }
     }
   }
 
@@ -85,7 +101,7 @@ const App = () => {
 
     // Check to see if user is connected. If not, connect to their account
     if (!account) {
-      return <button style={{ backgroundColor: "purple", padding: "10px", color: "white", border: "none", borderRadius: "5px" }} onClick={connectAccount}>Please connect your Metamask wallet</button>
+      return <button style={{ backgroundColor: "purple", padding: "10px", color: "white", border: "none", borderRadius: "5px", textAlign: "center" }} onClick={connectAccount}>Please connect your Metamask wallet</button>
     }
 
     if (balance == undefined && account != undefined) {
@@ -101,8 +117,8 @@ const App = () => {
         <div style={{ margin: "auto" }}>
           <p className="balance" style={{ display: "block", textAlign: "center", fontSize: "25px" }}>Your Balance: {balance}</p>
           <div className="" style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-            <button style={{ backgroundColor: "purple", padding: "10px", color: "white", border: "none", borderRadius: "5px" }} onClick={deposit}>Deposit 1 ETH</button>
-            <button style={{ backgroundColor: "purple", padding: "10px", color: "white", border: "none", borderRadius: "5px" }} onClick={withdraw}>Withdraw 1 ETH</button>
+            <button disabled={depositLoading || withdrawLoading} style={{ backgroundColor: "purple", padding: "15px", color: "white", border: "none", borderRadius: "5px" }} onClick={deposit}>{depositLoading ? "Processing" : "Deposit 1 ETH"}</button>
+            <button disabled={withdrawLoading || depositLoading} style={{ backgroundColor: "purple", padding: "15px", color: "white", border: "none", borderRadius: "5px" }} onClick={withdraw}>{withdrawLoading ? "Processing" : "Withdraw 1 ETH"}</button>
           </div>
         </div>
       </div>
