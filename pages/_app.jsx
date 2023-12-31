@@ -1,18 +1,22 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import atm_abi from "../abi/assessment.json";
+import audit_abi from "../abi/assessment.json";
 import "./index.css"
 
 const App = () => {
   const [ethWallet, setEthWallet] = useState(undefined);
   const [account, setAccount] = useState(undefined);
-  const [atm, setATM] = useState(undefined);
+  const [email, setEmail] = useState("");
+  const [category, setCategory] = useState("");
+  const [audit, setAudit] = useState(undefined);
   const [balance, setBalance] = useState(undefined);
-  const [withdrawLoading, setWithdrawLoading] = useState(false);
-  const [depositLoading, setDepositLoading] = useState(false);
+  const [getAuditorLoading, setGetAuditorLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [randomForm, setRandomForm] = useState(false);
+  const [addingLoading, setAddingLoading] = useState(false);
 
-  const contractAddress = "0x30298cb1Da58Ee04a5f67ca17085256595C0C008";
-  const atmABI = atm_abi;
+  const contractAddress = "0x4E6350F09783DeB19DcCA9f85F09014F1a8EF644";
+  const auditABI = audit_abi;
 
   const getWallet = async () => {
     if (window.ethereum) {
@@ -44,48 +48,47 @@ const App = () => {
     handleAccount(accounts);
 
     // once wallet is set we can get a reference to our deployed contract
-    getATMContract();
+    getAuditContract();
   };
 
-  const getATMContract = () => {
+  const getAuditContract = () => {
     const provider = new ethers.providers.Web3Provider(ethWallet);
     const signer = provider.getSigner();
-    const atmContract = new ethers.Contract(contractAddress, atmABI, signer);
-    setATM(atmContract);
+    const auditContract = new ethers.Contract(contractAddress, auditABI, signer);
+    setAudit(auditContract);
   }
 
-  const balanceOfUser = async () => {
-    if (atm) {
-      setBalance((await atm.getBalance()).toNumber());
-      setWithdrawLoading(false);
-      setDepositLoading(false);
+  const auditorsCount = async () => {
+    if (audit) {
+      const count = await audit.allAuditors();
+      console.log(count)
+      setBalance(count?.length);
+      // setWithdrawLoading(false);
+      // setDepositLoading(false);
     }
   }
 
-  const deposit = async () => {
-    if (atm) {
-      setDepositLoading(true);
+  const addAuditor = async () => {
+    if (audit) {
+      setAddingLoading(true);
       try {
-        let tx = await atm.deposit(1);
+        let tx = await audit.becomeAuditor(category, email);
         await tx.wait()
-        balanceOfUser();
 
       } catch (error) {
-        setDepositLoading(false);
+        setAddingLoading(false);
       }
     }
   }
-
-  const withdraw = async () => {
-    if (atm) {
-      setWithdrawLoading(true);
+  const getAuditor = async () => {
+    if (audit) {
+      setAddingLoading(true);
       try {
-        let tx = await atm.withdraw(1);
+        let tx = await audit.becomeAuditor(category, email);
         await tx.wait()
-        balanceOfUser();
 
       } catch (error) {
-        setWithdrawLoading(false);
+        setAddingLoading(false);
       }
     }
   }
@@ -96,29 +99,71 @@ const App = () => {
   const initUser = () => {
     // Check to see if user has Metamask
     if (!ethWallet) {
-      return <p>Please install Metamask in order to use this ATM.</p>
+      return <p className="install_button">Please install Metamask in order to use this DAPP.</p>
     }
 
     // Check to see if user is connected. If not, connect to their account
     if (!account) {
-      return <button style={{ backgroundColor: "purple", padding: "10px", color: "white", border: "none", borderRadius: "5px", textAlign: "center" }} onClick={connectAccount}>Please connect your Metamask wallet</button>
+      return <button className="connect" style={{ backgroundColor: "purple", padding: "10px", color: "white", border: "none", borderRadius: "5px", textAlign: "center" }} onClick={connectAccount}>Please connect your Metamask wallet</button>
     }
 
-    if (balance == undefined && account != undefined) {
-      balanceOfUser();
+    if (balance === undefined && account !== undefined) {
+      auditorsCount();
     }
 
     return (
       <div style={{ fontFamily: "sans-serif" }}>
         <div className="navbar bg-base-100 header">
-          <a className="btn btn-ghost text-xl" style={{ fontSize: "20px" }}>myWallet</a>
-          <p className="text-red-500">Your Account: {account}</p>
+          <a className="btn btn-ghost text-xl" style={{ fontSize: "20px" }}>auditorsChain</a>
+          <p className="text-red-600">Your Account: {account}</p>
         </div>
         <div style={{ margin: "auto" }}>
-          <p className="balance" style={{ display: "block", textAlign: "center", fontSize: "25px" }}>Your Balance: {balance}</p>
-          <div className="" style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-            <button disabled={depositLoading || withdrawLoading} style={{ backgroundColor: "purple", padding: "15px", color: "white", border: "none", borderRadius: "5px" }} onClick={deposit}>{depositLoading ? "Processing" : "Deposit 1 ETH"}</button>
-            <button disabled={withdrawLoading || depositLoading} style={{ backgroundColor: "purple", padding: "15px", color: "white", border: "none", borderRadius: "5px" }} onClick={withdraw}>{withdrawLoading ? "Processing" : "Withdraw 1 ETH"}</button>
+          <p className="balance" style={{ display: "block", textAlign: "center", fontSize: "25px" }}>Total Auditors: {balance}</p>
+
+          {/* Become an auditor */}
+          {showForm &&
+            <div className="container">
+              <div>
+
+                <label htmlFor="category">Category</label>
+                <select>
+                  <option>Smart Contract Writing</option>
+                  <option>Content Writing</option>
+                  <option>Video Edit</option>
+                  <option>Web Development</option>
+                  </select>
+
+                <label htmlFor="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Your valid email" />
+
+                <input type="submit" value="Submit" onClick={() => addAuditor()} />
+
+              </div>
+            </div>
+          }
+
+          {/* Get an auditor */}
+          {randomForm &&
+            <div className="container">
+              <div>
+
+                <label htmlFor="category">Category</label>
+                <select>
+                  <option>Smart Contract Writing</option>
+                  <option>Content Writing</option>
+                  <option>Video Edit</option>
+                  <option>Web Development</option>
+                  </select>
+
+                <input type="submit" value="Submit" onClick={() => getAuditor()} />
+
+              </div>
+            </div>
+          }
+
+          <div className="" style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "10px" }}>
+            <button disabled={getAuditorLoading || addingLoading} style={{ backgroundColor: "#04AA6D", padding: "15px", color: "white", border: "none", borderRadius: "5px" }} onClick={() => setShowForm(!showForm)}>{showForm ? "Close Form" : "Become An Auditor"}</button>
+            <button disabled={getAuditorLoading || addingLoading} style={{ backgroundColor: "#04AA6D", padding: "15px", color: "white", border: "none", borderRadius: "5px" }} onClick={() => setRandomForm(!randomForm)}>{getAuditorLoading ? "Cancel" : "Get An Auditor By Category"}</button>
           </div>
         </div>
       </div>

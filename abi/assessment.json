@@ -1,60 +1,136 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "initBalance",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "payable",
+    "inputs": [],
+    "stateMutability": "nonpayable",
     "type": "constructor"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "balance",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "withdrawAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "InsufficientBalance",
+    "inputs": [],
+    "name": "ZeroAddress",
     "type": "error"
   },
   {
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
+        "indexed": true,
+        "internalType": "address",
+        "name": "selectedAuditor",
+        "type": "address"
       }
     ],
-    "name": "Deposit",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "Withdraw",
+    "name": "AuditorSelected",
     "type": "event"
   },
   {
     "inputs": [],
-    "name": "balance",
+    "name": "allAuditors",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "category",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "email",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "_auditor",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "currentGigs",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isConfirmed",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "confirmationTime",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "contractInstance",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "id",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct Audit.AuditorContracts[]",
+            "name": "contractsAddress",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct Audit.Auditor[]",
+        "name": "_auditors",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "auditor_",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "category",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "email",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "_auditor",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "currentGigs",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isConfirmed",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "confirmationTime",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "auditorsCount",
     "outputs": [
       {
         "internalType": "uint256",
@@ -68,53 +144,56 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "_amount",
-        "type": "uint256"
+        "internalType": "string",
+        "name": "_category",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_email",
+        "type": "string"
       }
     ],
-    "name": "deposit",
+    "name": "becomeAuditor",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getBalance",
-    "outputs": [
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_category",
+        "type": "string"
+      },
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "ranNum",
         "type": "uint256"
       }
     ],
-    "stateMutability": "view",
+    "name": "getAuditorByCategory",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "owner",
+    "name": "returnSelectedAuditor",
     "outputs": [
       {
-        "internalType": "address payable",
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_withdrawAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "withdraw",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   }
 ]
