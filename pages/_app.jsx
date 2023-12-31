@@ -7,13 +7,15 @@ const App = () => {
   const [ethWallet, setEthWallet] = useState(undefined);
   const [account, setAccount] = useState(undefined);
   const [email, setEmail] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState("Smart Contract Writing");
   const [audit, setAudit] = useState(undefined);
+  const [freelancers, setFreelancers] = useState([]);
   const [balance, setBalance] = useState(undefined);
   const [getAuditorLoading, setGetAuditorLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [randomForm, setRandomForm] = useState(false);
   const [addingLoading, setAddingLoading] = useState(false);
+  const [address, setAddress] = useState()
 
   const contractAddress = "0x4E6350F09783DeB19DcCA9f85F09014F1a8EF644";
   const auditABI = audit_abi;
@@ -51,9 +53,10 @@ const App = () => {
     getAuditContract();
   };
 
-  const getAuditContract = () => {
+  const getAuditContract = async () => {
     const provider = new ethers.providers.Web3Provider(ethWallet);
     const signer = provider.getSigner();
+    setAddress(await signer.getAddress())
     const auditContract = new ethers.Contract(contractAddress, auditABI, signer);
     setAudit(auditContract);
   }
@@ -61,8 +64,8 @@ const App = () => {
   const auditorsCount = async () => {
     if (audit) {
       const count = await audit.allAuditors();
-      console.log(count)
       setBalance(count?.length);
+      setFreelancers(count)
       // setWithdrawLoading(false);
       // setDepositLoading(false);
     }
@@ -74,7 +77,8 @@ const App = () => {
       try {
         let tx = await audit.becomeAuditor(category, email);
         await tx.wait()
-
+        setFreelancers([...freelancers, { email, category, address }])
+        setAddingLoading(false)
       } catch (error) {
         setAddingLoading(false);
       }
@@ -82,11 +86,13 @@ const App = () => {
   }
   const getAuditor = async () => {
     if (audit) {
-      setAddingLoading(true);
+      setGetAuditorLoading(true);
       try {
-        let tx = await audit.becomeAuditor(category, email);
+        let tx = await audit.getAuditorByCategory(category, 12456);
         await tx.wait()
-
+        const freelancer = await audit.returnSelectedAuditor()
+        alert(`Your Selected Freelancer is ${freelancer}`)
+        setGetAuditorLoading(false)
       } catch (error) {
         setAddingLoading(false);
       }
@@ -118,7 +124,7 @@ const App = () => {
           <p className="text-red-600">Your Account: {account}</p>
         </div>
         <div style={{ margin: "auto" }}>
-          <p className="balance" style={{ display: "block", textAlign: "center", fontSize: "25px" }}>Total Auditors: {balance}</p>
+          <p className="balance" style={{ display: "block", textAlign: "center", fontSize: "25px" }}>Total Freelancers: {balance}</p>
 
           {/* Become an auditor */}
           {showForm &&
@@ -126,17 +132,17 @@ const App = () => {
               <div>
 
                 <label htmlFor="category">Category</label>
-                <select>
-                  <option>Smart Contract Writing</option>
-                  <option>Content Writing</option>
-                  <option>Video Edit</option>
-                  <option>Web Development</option>
-                  </select>
+                <select onChange={(e) => setCategory(e.target.value)}>
+                  <option value="Smart Contract Writing">Smart Contract Writing</option>
+                  <option value="Content Writing">Content Writing</option>
+                  <option value="Video Edit">Video Edit</option>
+                  <option value="Web Development">Web Development</option>
+                </select>
 
                 <label htmlFor="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Your valid email" />
+                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" id="email" name="email" placeholder="Your valid email" />
 
-                <input type="submit" value="Submit" onClick={() => addAuditor()} />
+                <input disabled={addingLoading} type="submit" value={addingLoading ? "Processing" : "Submit"} onClick={() => addAuditor()} />
 
               </div>
             </div>
@@ -148,23 +154,45 @@ const App = () => {
               <div>
 
                 <label htmlFor="category">Category</label>
-                <select>
-                  <option>Smart Contract Writing</option>
-                  <option>Content Writing</option>
-                  <option>Video Edit</option>
-                  <option>Web Development</option>
-                  </select>
+                <select onChange={(e) => setCategory(e.target.value)}>
+                  <option value="Smart Contract Writing">Smart Contract Writing</option>
+                  <option value="Content Writing">Content Writing</option>
+                  <option value="Video Edit">Video Edit</option>
+                  <option value="Web Development">Web Development</option>
+                </select>
 
-                <input type="submit" value="Submit" onClick={() => getAuditor()} />
+                <input type="submit" disabled={getAuditorLoading} value={getAuditorLoading ? "Processing" : "Submit"} onClick={() => getAuditor()} />
 
               </div>
             </div>
           }
 
           <div className="" style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "10px" }}>
-            <button disabled={getAuditorLoading || addingLoading} style={{ backgroundColor: "#04AA6D", padding: "15px", color: "white", border: "none", borderRadius: "5px" }} onClick={() => setShowForm(!showForm)}>{showForm ? "Close Form" : "Become An Auditor"}</button>
-            <button disabled={getAuditorLoading || addingLoading} style={{ backgroundColor: "#04AA6D", padding: "15px", color: "white", border: "none", borderRadius: "5px" }} onClick={() => setRandomForm(!randomForm)}>{getAuditorLoading ? "Cancel" : "Get An Auditor By Category"}</button>
+            <button disabled={getAuditorLoading || addingLoading} style={{ backgroundColor: "#04AA6D", padding: "15px", color: "white", border: "none", borderRadius: "5px" }} onClick={() => { setShowForm(!showForm); setRandomForm(false) }}>{showForm ? "Close Form" : "Become A Freelancer"}</button>
+            <button disabled={getAuditorLoading || addingLoading} style={{ backgroundColor: "#04AA6D", padding: "15px", color: "white", border: "none", borderRadius: "5px" }} onClick={() => { setRandomForm(!randomForm); setShowForm(false) }}>{randomForm ? "Cancel" : "Get A Freelancer By Category"}</button>
           </div>
+
+          {/* Table */}
+          <h1>All Freelancers</h1>
+
+          <table id="customers">
+            <tr>
+              <th>Email</th>
+              <th>Category</th>
+              <th>Address</th>
+            </tr>
+            {freelancers.length > 0 && freelancers?.map((freelancer, index) => (
+              <tr key={index}>
+                <td>{freelancer[1]}</td>
+                <td>{freelancer[0]}</td>
+                <td>{freelancer[2]}</td>
+              </tr>
+            ))}
+            {/* <tr>
+              <td>Berglunds snabbköp</td>
+              <td>Christina Berglund</td>
+            </tr> */}
+          </table>
         </div>
       </div>
     )
