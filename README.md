@@ -1,9 +1,8 @@
 # Wallet DAPP
-This  is a simple DAPP that interacts with a smart contract that allows you to deposit,withdraw and view your balance.
+This  is a simple DAPP that interacts with a smart contract that allows you to become a freelancer and also allows the system pick a freelancer by random based on the category.
 
 ## Description
-The contract has functions that allows you to view balance, update the state of your balance either by withdrawing or depositing into your wallet.
-This state changes can only be carry out by you, as the wallet owner.
+The contract has functions that allows you become a freelancer, get picked by random by the system, and allows the public view all the freelancers in the system.
 
 ## Author
 
